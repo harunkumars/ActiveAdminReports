@@ -24,15 +24,18 @@ ActiveAdmin.register <%= name %> do
       include mod
     end
 
-    begin
-      # ActiveRecord::Base.connected_to(role: :reading) do
-        klass.class_eval(resource.ruby_script)
-        @out = ">>>> The Script returned: #{klass.new.perform}"
-      # end
-    rescue => e
-      @out = ">>>> The Script failed: #{e}"
-    end
-
+    # ActiveRecord::Base.connected_to(role: :reading) do
+    klass.class_eval(resource.ruby_script)
+    @out = ">>>> The Script returned: #{klass.new.perform}"
+    # end
+  rescue => e
+    @out = ">>>> The Script failed: #{e}"
+  rescue SyntaxError => e # This is an exception and should be rescued explicitly
+    @out = "The provided Ruby Script contains a syntax error. Kindly fix and retry. \n\n
+###############################################
+ B A C K T R A C E
+###############################################\n\n
+ #{e.backtrace.join("\n")}"
   ensure
     response.stream.write "#{@out}\n"
     response.stream.write "Streaming Ended. You may now close the tab.\n"
