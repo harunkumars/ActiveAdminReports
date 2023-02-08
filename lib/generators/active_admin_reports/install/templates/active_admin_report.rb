@@ -1,2 +1,0 @@
-class ActiveAdminReport < ApplicationRecord
-end

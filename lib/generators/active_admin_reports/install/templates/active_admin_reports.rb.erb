@@ -1,9 +1,9 @@
-ActiveAdmin.register ActiveAdminReport do
+ActiveAdmin.register <%= name %> do
 
   permit_params :name, :description, :ruby_script
 
   action_item :execute, only: :show do
-    link_to 'Execute Ruby Script', execute_admin_active_admin_report_path(resource)
+    link_to 'Execute Ruby Script', execute_admin_<%= name.underscore %>_path(resource)
   end
   member_action :execute do
     response.headers['Content-Type'] = 'text/event-stream'

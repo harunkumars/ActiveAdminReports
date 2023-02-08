@@ -1,12 +1,12 @@
-class CreateActiveAdminReports < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version.to_s %>]
+class Create<%= name.pluralize %> < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version.to_s %>]
   def change
-    create_table :active_admin_reports do |t|
+    create_table <%= ":#{name.underscore.pluralize}" %> do |t|
       t.string :name, default: ''
       t.text :description, default: ''
       t.text :ruby_script, default: ''
 
       t.timestamps
     end
-    add_index :active_admin_reports, %i[name]
+    add_index <%= ":#{name.underscore.pluralize}" %>, %i[name]
   end
 end
