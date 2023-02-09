@@ -1,0 +1,12 @@
+class Create<%= report_runs.classify.pluralize %> < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version.to_s %>]
+  def change
+    create_table <%= ":#{report_runs}" %> do |t|
+      t.datetime :ran_at
+      t.belongs_to <%= ":#{admin_user}" %>, null: true
+      t.belongs_to <%= ":#{name.underscore}" %>, null: true
+      t.text :log, default: ''
+
+      t.timestamps
+    end
+  end
+end
