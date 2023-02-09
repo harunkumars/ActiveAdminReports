@@ -8,14 +8,14 @@ ActiveAdmin.register <%= name %> do
   member_action :execute do
     response.headers['Content-Type'] = 'text/event-stream'
     response.headers['Last-Modified'] = Time.now.httpdate
-    response.stream.write "Streaming Started: \n"
 
     report_run = resource.<%= report_runs %>.build(admin_user: <%= admin_user_method %>, ran_at: Time.current)
 
     custom_puts = proc do |arg|
       report_run.log << "#{arg}\n"
       response.stream.write "#{arg}\n"
-    end
+      end
+    custom_puts["Streaming Started: \n"]
 
     mod = Module.new do
       define_method :puts do |*args|
@@ -32,20 +32,20 @@ ActiveAdmin.register <%= name %> do
     # ActiveRecord::Base.connected_to(role: :reading) do
     klass.class_eval(resource.ruby_script)
     klass_instance = klass.new
-    raise SyntaxError, 'The provided script should implement a #perform method' unless klass_instance.responds_to?(:perform)
+    raise SyntaxError, 'The provided script should implement a #perform method' unless klass_instance.respond_to?(:perform)
     @out = ">>>> The Script returned: #{klass_instance.perform}"
     # end
   rescue => e
     @out = ">>>> The Script failed: #{e}"
   rescue SyntaxError => e # This is an exception and should be rescued explicitly
-    @out = "The provided Ruby Script contains a syntax error. Kindly fix and retry. \n\n
+    @out = "The provided Ruby Script contains a syntax error: #{e.message}. Kindly fix and retry. \n\n
 ###############################################
  B A C K T R A C E
 ###############################################\n\n
- #{e.backtrace.join("\n")}"
+#{e.backtrace.join("\n")}"
   ensure
-    response.stream.write "#{@out}\n"
-    response.stream.write "Streaming Ended. You may now close the tab.\n"
+    custom_puts["#{@out}\n"]
+    custom_puts["Streaming Ended. You may now close the tab.\n"]
     response.stream.close
     report_run.save!
   end

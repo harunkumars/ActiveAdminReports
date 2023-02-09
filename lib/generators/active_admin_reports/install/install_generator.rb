@@ -26,6 +26,7 @@ module ActiveAdminReports
         template "active_admin_report.rb.erb", "app/models/#{name.underscore}.rb"
         template "active_admin_report_run.rb.erb", "app/models/#{report_runs.singularize}.rb"
         template "active_admin_reports.rb.erb", "app/admin/#{name.underscore.pluralize}.rb"
+        template "active_admin_report_runs.rb.erb", "app/admin/#{report_runs}.rb"
       end
     end
   end
