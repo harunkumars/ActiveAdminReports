@@ -10,7 +10,12 @@ ActiveAdmin.register <%= name %> do
     response.headers['Last-Modified'] = Time.now.httpdate
     response.stream.write "Streaming Started: \n"
 
-    custom_puts = proc { |arg| response.stream.write "#{arg}\n" }
+    report_run = resource.<%= report_runs %>.build(admin_user: <%= admin_user_method %>, ran_at: Time.current)
+
+    custom_puts = proc do |arg|
+      report_run.log << "#{arg}\n"
+      response.stream.write "#{arg}\n"
+    end
 
     mod = Module.new do
       define_method :puts do |*args|
@@ -26,7 +31,9 @@ ActiveAdmin.register <%= name %> do
 
     # ActiveRecord::Base.connected_to(role: :reading) do
     klass.class_eval(resource.ruby_script)
-    @out = ">>>> The Script returned: #{klass.new.perform}"
+    klass_instance = klass.new
+    raise SyntaxError, 'The provided script should implement a #perform method' unless klass_instance.responds_to?(:perform)
+    @out = ">>>> The Script returned: #{klass_instance.perform}"
     # end
   rescue => e
     @out = ">>>> The Script failed: #{e}"
@@ -40,6 +47,7 @@ ActiveAdmin.register <%= name %> do
     response.stream.write "#{@out}\n"
     response.stream.write "Streaming Ended. You may now close the tab.\n"
     response.stream.close
+    report_run.save!
   end
 
   index do

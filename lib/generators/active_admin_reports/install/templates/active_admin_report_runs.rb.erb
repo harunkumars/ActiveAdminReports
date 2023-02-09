@@ -1,0 +1,26 @@
+ActiveAdmin.register <%= report_runs.classify %> do
+
+  actions :index, :show, :destroy
+
+  index do
+    selectable_column
+    id_column
+    column <%= :"name.underscore" %>
+    column <%= :"admin_user" %>
+    column :ran_at
+    actions
+  end
+
+  show do
+    code do
+      div(style: 'white-space: pre') do
+        resource.log
+      end
+    end
+  end
+  sidebar('Info', only: :show) do
+    attributes_table do
+      rows <%= :"name.underscore" %>, <%= :"admin_user" %>, :ran_at, :created_at, :updated_at
+    end
+  end
+end
