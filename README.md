@@ -1,22 +1,27 @@
 # ActiveAdminReports
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/ActiveAdminReports`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+This is still a Work In Progress
 
 ## Installation
 
 Install the gem and add to the application's Gemfile by executing:
 
-    $ bundle add ActiveAdminReports
-
-If bundler is not being used to manage dependencies, install the gem by executing:
-
-    $ gem install ActiveAdminReports
+    $ bundle add ActiveAdminReports --github 'harunkumars/ActiveAdminReports' --branch 'main'
 
 ## Usage
 
-TODO: Write usage instructions here
+After running bundle add step above,
+run 
+
+`rails g active_admin_reports:install`
+
+this will create 2 models ActiveAdminReport and ActiveAdminReportRun
+
+To customize the model names provide the 'class' names as positional arguments to the install command
+
+`rails g active_admin_reports:install Script`
+or
+`rails g active_admin_reports:install MyReport MyReportExecution`
 
 ## Development
 
