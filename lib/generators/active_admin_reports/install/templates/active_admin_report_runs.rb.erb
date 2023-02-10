@@ -1,5 +1,5 @@
 ActiveAdmin.register <%= report_runs.classify %> do
-
+  belongs_to <%= ":#{name.underscore}" %>, optional: true
   actions :index, :show, :destroy
 
   index do
@@ -12,15 +12,31 @@ ActiveAdmin.register <%= report_runs.classify %> do
   end
 
   show do
-    code do
-      div(style: 'white-space: pre') do
-        resource.log
+    columns do
+      column(max_width: '70%') do
+        code do
+          div(style: 'white-space: pre-wrap; overflow-wrap: break-word;') do
+            resource.log
+          end
+        end
+      end
+      column do
+        panel 'Report(s)' do
+          resource.reports.map do |r|
+            li a(href: r.url){ r.filename }
+          end
+        end
       end
     end
   end
+
   sidebar('Info', only: :show) do
     attributes_table do
       rows <%= ":#{name.underscore}" %>, <%= ":#{admin_user}" %>, :ran_at, :created_at, :updated_at
     end
+  end
+
+  controller do
+    include ActiveStorage::SetCurrent
   end
 end
