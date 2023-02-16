@@ -21,7 +21,7 @@ class <%= name %>Job < ApplicationJob
       report_run.log << "#{arg}\n"
     end
 
-    custom_puts["Report Run Started: \n"]
+    custom_puts["R E P O R T   R U N   S T A R T E D: \n"]
     custom_puts["Performing #{mode.to_s.humanize} - #{job_id}"]
     custom_puts["(Output from #puts invocations, if any, will be logged here:)\n"]
 
@@ -64,7 +64,7 @@ class <%= name %>Job < ApplicationJob
     #{e.backtrace.join("\n")}"
   ensure
     custom_puts["#{@out}\n"]
-    custom_puts["Batch Run Ended. You may now close the tab.\n"]
+    custom_puts["R E P O R T   R U N   E N D E D. \nYou may now close the tab.\n"]
     report_run.update!(run_status: :completed, ran_at: Time.current)
   end
 
