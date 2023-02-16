@@ -1,0 +1,71 @@
+# frozen_string_literal: true
+
+class <%= name %>Job < ApplicationJob
+  attr_reader :resource, :current_admin_user
+
+  def self.perform_live(*args, &block)
+    new.perform(*args, mode: :live, &block)
+  end
+
+  def perform(id, current_admin_user_id, mode: :async) # a block may be passed which is yielded with arguments from any #puts call
+    @resource = <%= name %>.find(id)
+    @current_admin_user = <%= admin_user.classify %>.find(current_admin_user_id)
+    report_run = resource.<%= report_runs %>.create!(
+      admin_user: current_admin_user,
+      run_status: :running,
+      job_reference: [mode, job_id].join('-')
+    )
+
+    custom_puts = proc do |arg|
+      yield arg if block_given?
+      report_run.log << "#{arg}\n"
+    end
+
+    custom_puts["Report Run Started: \n"]
+    custom_puts["Performing #{mode.to_s.humanize} - #{job_id}"]
+    custom_puts["(Output from #puts invocations, if any, will be logged here:)\n"]
+
+    mod = Module.new do
+      define_method :puts do |*args|
+        args.each{ |arg| custom_puts[arg] }
+        nil
+      end
+    end
+
+    klass = Class.new do
+      extend mod
+      include mod
+    end
+
+    # ActiveRecord::Base.connected_to(role: :reading) do
+    klass.class_eval(resource.ruby_script, __FILE__, __LINE__)
+    klass_instance = klass.new
+    raise SyntaxError, 'The provided script should implement a #perform method' unless klass_instance.respond_to?(:perform)
+    raise SyntaxError, 'The provided script should implement a #output method' unless klass_instance.respond_to?(:output)
+
+    result = klass_instance.perform
+    @out = ">>>> The Script returned: #{result}" if result
+
+    [klass_instance.output].flatten.each do |out|
+      report_run.reports.attach io: File.open(out), filename: out.path
+    end
+
+  rescue => e
+    @out = ">>>> The Script failed: #{e} \n\n
+###############################################
+ B A C K T R A C E
+###############################################\n\n
+    #{e.backtrace.join("\n")}"
+  rescue SyntaxError => e # This is an exception and should be rescued explicitly
+    @out = "The provided Ruby Script contains a syntax error: #{e.message}. Kindly fix and retry. \n\n
+###############################################
+ B A C K T R A C E
+###############################################\n\n
+    #{e.backtrace.join("\n")}"
+  ensure
+    custom_puts["#{@out}\n"]
+    custom_puts["Batch Run Ended. You may now close the tab.\n"]
+    report_run.update!(run_status: :completed, ran_at: Time.current)
+  end
+
+end

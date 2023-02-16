@@ -2,9 +2,38 @@ ActiveAdmin.register <%= name %> do
 
   permit_params :name, :description, :ruby_script
 
-  action_item :execute, only: :show do
-    link_to 'Execute Ruby Script', execute_admin_<%= name.underscore %>_path(resource)
+  form do |f|
+    f.semantic_errors *f.object.errors.attribute_names
+    f.inputs do
+      f.input :name
+      f.input :description, input_html: { rows: 5 }
+      f.input :ruby_script
+      f.actions
+    end
   end
+
+  action_item :execute, only: :show do
+    dropdown_menu 'Execute Options' do
+      item 'Execute Now', execute_now_admin_<%= name.underscore %>_path(resource)
+      item 'Execute Later', execute_later_admin_<%= name.underscore %>_path(resource)
+    end
+  end
+
+  member_action :execute_later do
+    job = <%= name %>Job.perform_later(resource.id, <%= admin_user_method %>.id)
+    redirect_to resource_path, notice: "Submitted #{job.job_id}"
+  end
+
+  member_action :execute_now do
+    response.headers['Content-Type'] = 'text/event-stream'
+    response.headers['Last-Modified'] = Time.now.httpdate
+    <%= name %>Job.perform_live(resource.id, <%= admin_user_method %>.id) do |arg|
+      response.stream.write "#{arg}\n"
+    end
+  ensure
+    response.stream.close
+  end
+
   member_action :execute do
     response.headers['Content-Type'] = 'text/event-stream'
     response.headers['Last-Modified'] = Time.now.httpdate
