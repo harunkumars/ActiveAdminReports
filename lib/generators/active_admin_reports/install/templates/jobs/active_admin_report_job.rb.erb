@@ -1,0 +1,82 @@
+class <%= name %>Job < ApplicationJob
+  attr_reader :resource, :current_admin_user, :report_run
+
+  def self.perform_live(*args, &block)
+    new.perform(*args, mode: :live, &block)
+  end
+
+  def perform(id, current_admin_user_id, mode: :async) # a block may be passed which is yielded with arguments from any #puts call
+    @resource = <%= name %>.find(id)
+    @current_admin_user = <%= admin_user.classify %>.find(current_admin_user_id)
+    @report_run = resource.<%= report_runs %>.create!(
+      admin_user: current_admin_user,
+      run_status: :running,
+      job_reference: [mode, job_id].join('-')
+    )
+
+    custom_puts = proc do |arg|
+      yield arg if block_given?
+      report_run.log << "#{arg}\n"
+    end
+
+    custom_puts["R E P O R T   R U N   S T A R T E D: \n"]
+    custom_puts["Performing #{mode.to_s.humanize} - #{job_id}"]
+    custom_puts["(Output from #puts invocations, if any, will be logged here:)\n"]
+    custom_puts["-------------------------------------------------------------\n"]
+
+    mod = Module.new do
+      define_method :puts do |*args|
+        args.each{ |arg| custom_puts[arg] }
+        nil
+      end
+    end
+
+    klass = Class.new do
+      extend mod
+      include mod
+    end
+
+    # ActiveRecord::Base.connected_to(role: :reading) do
+    klass.class_eval(resource.ruby_script, __FILE__, __LINE__)
+    klass_instance = klass.new
+    raise SyntaxError, 'The provided script should implement a #perform method' unless klass_instance.respond_to?(:perform)
+    raise SyntaxError, 'The provided script should implement a #output method' unless klass_instance.respond_to?(:output)
+
+    result = klass_instance.perform
+    @out = ">>>> The Script returned: #{result}" if result
+
+    [klass_instance.output].flatten.each do |out|
+      report_run.reports.attach io: File.open(out), filename: out.path
+    end
+
+  rescue SyntaxError, StandardError => e
+    run_status = :failed
+    handle_error(e)
+  else
+    run_status = :completed
+  ensure
+    custom_puts["-------------------------------------------------------------\n"]
+    custom_puts["#{@out}\n"]
+    custom_puts["R E P O R T   R U N   E N D E D. \nYou may now close the tab.\n"]
+    # update at the end as we accumulate custom_puts output in the log attribute
+    report_run.update!(run_status: run_status, ran_at: Time.current)
+  end
+
+  private
+
+  def handle_error(e)
+    report_run.update!(run_status: :failed, ran_at: Time.current)
+    case e
+    when SyntaxError
+      @out = "The provided Ruby Script contains a syntax error: #{e.inspect}. Kindly fix and retry."
+    else
+      @out = "The Script failed: #{e.inspect}"
+    end
+    @out = "#{@out} \n\n
+###############################################
+ B A C K T R A C E
+###############################################\n\n
+    #{e.backtrace.join("\n")}"
+  end
+
+end

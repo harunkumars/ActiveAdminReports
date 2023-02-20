@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ActiveAdminReports (0.1.0)
+    ActiveAdminReports (0.1.1)
       activeadmin (>= 2.7.0)
       activestorage (>= 6.1.0)
 

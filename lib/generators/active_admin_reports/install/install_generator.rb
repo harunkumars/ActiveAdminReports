@@ -23,10 +23,13 @@ module ActiveAdminReports
       end
 
       def set_up_admin_resource
-        template "active_admin_report.rb.erb", "app/models/#{name.underscore}.rb"
-        template "active_admin_report_run.rb.erb", "app/models/#{report_runs.singularize}.rb"
-        template "active_admin_reports.rb.erb", "app/admin/#{name.underscore.pluralize}.rb"
-        template "active_admin_report_runs.rb.erb", "app/admin/#{report_runs}.rb"
+        template "models/active_admin_report.rb.erb", "app/models/#{name.underscore}.rb"
+        template "models/active_admin_report_run.rb.erb", "app/models/#{report_runs.singularize}.rb"
+
+        template "admin/active_admin_reports.rb.erb", "app/admin/#{name.underscore.pluralize}.rb"
+        template "admin/active_admin_report_runs.rb.erb", "app/admin/#{report_runs}.rb"
+
+        template "jobs/active_admin_report_job.rb.erb", "app/jobs/#{name.underscore}_job.rb"
       end
     end
   end

@@ -7,6 +7,10 @@ ActiveAdmin.register <%= report_runs.classify %> do
     id_column
     column <%= ":#{name.underscore}" %>
     column <%= ":#{admin_user}" %>
+    column :job_reference
+    column(:run_status) do |run|
+      status_tag run.run_status_completed?, label: run.run_status
+    end
     column :ran_at
     actions
   end
@@ -26,7 +30,7 @@ ActiveAdmin.register <%= report_runs.classify %> do
             li a(href: r.url){ r.filename }
           end
         end
-      end
+      end if resource.reports.present?
     end
   end
 
