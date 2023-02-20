@@ -44,11 +44,15 @@ ActiveAdmin.register <%= name %> do
   end
 
   show do
-    code do
-      div(style: 'white-space: pre') do
+    pre do
+      code(class: 'language-ruby') do
         resource.ruby_script
       end
     end
+    link rel: :stylesheet,
+         href: '//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css'
+    script src: '//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js'
+    script render partial: 'admin/<%= name.underscore.pluralize %>/highlight_code', formats: [:js]
   end
   sidebar('Info', only: :show) do
     attributes_table do
