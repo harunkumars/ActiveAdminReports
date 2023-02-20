@@ -3,11 +3,15 @@ ActiveAdmin.register <%= name %> do
   permit_params :name, :description, :ruby_script
 
   form do |f|
+    script src: '//cdnjs.cloudflare.com/ajax/libs/ace/1.15.2/ace.min.js'
+    script src: '//cdnjs.cloudflare.com/ajax/libs/ace/1.15.2/mode-html_ruby.min.js'
+    script src: '//cdnjs.cloudflare.com/ajax/libs/ace/1.15.2/theme-monokai.min.js'
+    script render partial: 'admin/<%= name.underscore.pluralize %>/edit_with_ace', formats: [:js]
     f.semantic_errors *f.object.errors.attribute_names
     f.inputs do
       f.input :name
       f.input :description, input_html: { rows: 5 }
-      f.input :ruby_script
+      f.input :ruby_script, input_html: { rows: 20, data: { editor: 'ruby'}}
       f.actions
     end
   end

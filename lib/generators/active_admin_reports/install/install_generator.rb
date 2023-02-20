@@ -33,6 +33,8 @@ module ActiveAdminReports
 
         template "views/active_admin_reports/_highlight_code.js",
                  "app/views/admin/#{name.underscore.pluralize}/_highlight_code.js"
+        template "views/active_admin_reports/_edit_with_ace.js",
+                 "app/views/admin/#{name.underscore.pluralize}/_edit_with_ace.js"
       end
     end
   end
