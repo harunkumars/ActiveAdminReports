@@ -30,6 +30,11 @@ module ActiveAdminReports
         template "admin/active_admin_report_runs.rb.erb", "app/admin/#{report_runs}.rb"
 
         template "jobs/active_admin_report_job.rb.erb", "app/jobs/#{name.underscore}_job.rb"
+
+        template "views/active_admin_reports/_highlight_code.js",
+                 "app/views/admin/#{name.underscore.pluralize}/_highlight_code.js"
+        template "views/active_admin_reports/_edit_with_ace.js",
+                 "app/views/admin/#{name.underscore.pluralize}/_edit_with_ace.js"
       end
     end
   end
