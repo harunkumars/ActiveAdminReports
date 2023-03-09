@@ -3,7 +3,7 @@ class Create<%= report_runs.classify.pluralize %> < ActiveRecord::Migration[<%= 
     create_table <%= ":#{report_runs}" %> do |t|
       t.datetime :ran_at
       t.belongs_to <%= ":#{admin_user}" %>, null: true
-      t.belongs_to <%= ":#{name.underscore}" %>, null: true
+      t.belongs_to <%= ":#{report}" %>, null: true
       t.text :log, default: ''
       t.integer :run_status, default: 0
       t.string :job_reference, default: ''
