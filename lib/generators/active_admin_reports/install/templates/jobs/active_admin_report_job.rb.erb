@@ -46,7 +46,7 @@ class <%= name %>Job < ApplicationJob
     @out = ">>>> The Script returned: #{result}" if result
 
     [klass_instance.output].flatten.each do |out|
-      report_run.reports.attach io: File.open(out), filename: out.path
+      report_run.reports.attach io: File.open(out), filename: File.basename(out)
     end
 
   rescue SyntaxError, StandardError => e
