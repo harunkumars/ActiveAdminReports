@@ -2,6 +2,8 @@ ActiveAdmin.register <%= report_runs.classify %> do
   belongs_to <%= ":#{name.underscore}" %>, optional: true
   actions :index, :show, :destroy
 
+  includes %i[<%= admin_user %> <%= report %>]
+
   index do
     selectable_column
     id_column
