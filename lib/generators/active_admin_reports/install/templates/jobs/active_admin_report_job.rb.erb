@@ -1,18 +1,33 @@
 class <%= name %>Job < ApplicationJob
   attr_reader :resource, :current_admin_user, :report_run
 
+  before_enqueue do |job|
+    report_id, admin_user_id = arguments
+    report_run = <%= report_runs.classify %>.create!(
+      <%= report %>_id: report_id,
+      <%= admin_user %>_id: admin_user_id,
+      run_status: :pending,
+      job_reference: [:async, job.job_id].join('-')
+    )
+    job.arguments.push(report_run.id)
+  end
+
   def self.perform_live(*args, &block)
     new.perform(*args, mode: :live, &block)
   end
 
-  def perform(id, current_admin_user_id, mode: :async) # a block may be passed which is yielded with arguments from any #puts call
+  def perform(id, current_admin_user_id, report_run_id = nil, mode: :async) # a block may be passed which is yielded with arguments from any #puts call
     @resource = <%= name %>.find(id)
     @current_admin_user = <%= admin_user.classify %>.find(current_admin_user_id)
-    @report_run = resource.<%= report_runs %>.create!(
-      admin_user: current_admin_user,
-      run_status: :running,
-      job_reference: [mode, job_id].join('-')
-    )
+    if report_run_id
+      @report_run = resource.<%= report_runs %>.find(report_run_id)
+    else
+      @report_run = resource.<%= report_runs %>.build(
+        <%= admin_user %>: current_admin_user,
+        job_reference: [mode, job_id].join('-')
+      )
+    end
+    @report_run.update!(run_status: :running)
 
     custom_puts = proc do |arg|
       yield arg if block_given?
@@ -46,7 +61,7 @@ class <%= name %>Job < ApplicationJob
     @out = ">>>> The Script returned: #{result}" if result
 
     [klass_instance.output].flatten.each do |out|
-      report_run.reports.attach io: File.open(out), filename: out.path
+      report_run.reports.attach io: File.open(out), filename: File.basename(out)
     end
 
   rescue SyntaxError, StandardError => e

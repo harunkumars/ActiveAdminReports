@@ -1,6 +1,6 @@
 class <%= report_runs.classify %> < ApplicationRecord
   belongs_to <%= ":#{admin_user}" %>, optional: true
-  belongs_to <%= ":#{name.underscore}" %>
+  belongs_to <%= ":#{report}" %>
   has_many_attached :reports
 
   enum run_status: {

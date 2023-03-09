@@ -1,11 +1,13 @@
 ActiveAdmin.register <%= report_runs.classify %> do
-  belongs_to <%= ":#{name.underscore}" %>, optional: true
+  belongs_to <%= ":#{report}" %>, optional: true
   actions :index, :show, :destroy
+
+  includes %i[<%= admin_user %> <%= report %>]
 
   index do
     selectable_column
     id_column
-    column <%= ":#{name.underscore}" %>
+    column <%= ":#{report}" %>
     column <%= ":#{admin_user}" %>
     column :job_reference
     column(:run_status) do |run|
@@ -36,7 +38,7 @@ ActiveAdmin.register <%= report_runs.classify %> do
 
   sidebar('Info', only: :show) do
     attributes_table do
-      rows <%= ":#{name.underscore}" %>, <%= ":#{admin_user}" %>, :ran_at, :created_at, :updated_at
+      rows <%= ":#{report}" %>, <%= ":#{admin_user}" %>, :ran_at, :created_at, :updated_at
     end
   end
 
