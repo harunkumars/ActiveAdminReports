@@ -9,7 +9,7 @@ module ActiveAdminReports
       argument :run_name, type: :string, default: "Run"
 
       no_commands do
-        attr_accessor :report_runs, :admin_user, :admin_user_method
+        attr_accessor :report_runs, :admin_user, :admin_user_method, :report
       end
 
       source_root File.expand_path("templates", __dir__)
@@ -17,6 +17,7 @@ module ActiveAdminReports
       def create_migrations
         self.admin_user_method = ActiveAdmin.application.namespace_settings.current_user_method
         self.admin_user = admin_user_method.to_s.split('_')[1..]&.join('_')
+        self.report = name.underscore
         self.report_runs = [name, run_name].join.underscore.pluralize
         migration_template "migrations/create_active_admin_reports.rb.erb", "db/migrate/create_#{name.underscore.pluralize}.rb"
         migration_template "migrations/create_active_admin_report_runs.rb.erb", "db/migrate/create_#{report_runs}.rb"
