@@ -1,9 +1,9 @@
-class Create<%= report_runs.classify.pluralize %> < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version.to_s %>]
+class Create<%= report_run.name.pluralize %> < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version.to_s %>]
   def change
-    create_table <%= ":#{report_runs}" %> do |t|
+    create_table <%= ":#{report_run.plural}" %> do |t|
       t.datetime :ran_at
-      t.belongs_to <%= ":#{admin_user}" %>, null: true
-      t.belongs_to <%= ":#{report}" %>, null: true
+      t.belongs_to <%= ":#{admin_user.singular}" %>, null: true
+      t.belongs_to <%= ":#{report.singular}" %>, null: true
       t.text :log, default: ''
       t.integer :run_status, default: 0
       t.string :job_reference, default: ''

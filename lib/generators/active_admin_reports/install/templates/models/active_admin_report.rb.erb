@@ -1,3 +1,35 @@
 class <%= name %> < ApplicationRecord
-  has_many <%= ":#{report_runs}" %>
+  has_many <%= ":#{report_run.plural}" %>
+
+  def define_singleton_class_for_script
+    ruby_script = self.ruby_script #pass instance attribute ruby_script through scope gates
+    Class.new(<%= report_run.name %>) do
+      class_attribute :form_fields_for_input, default: {}
+      def self.name
+        "Report"
+      end
+
+      def self.input(arg = nil)
+        arg_array = Array(arg)
+        raise "input macro called without arguments" if arg_array.empty? # TODO: check why this is not hit
+
+        arg_array.each do |k,v|
+          k = k.to_sym
+          if v.is_a? Hash
+            v.symbolize_keys!
+            cast_type = v.delete(:cast_type)
+            default = v.delete(:default) || nil
+          end
+          attribute k, cast_type, default: default
+          self.form_fields_for_input = form_fields_for_input.merge(k => v || {})
+        end
+      end
+
+      class_eval(ruby_script)
+      def new(input_hash)
+        # At this point, the Class has been dynamically defined and has the necessary attribute accessors for inputs declared in the script
+        assign_attributes(input_hash)
+      end
+    end
+  end
 end
