@@ -9,20 +9,13 @@ class <%= name %> < ApplicationRecord
         "Report"
       end
 
-      def self.input(arg = nil)
-        arg_array = Array(arg)
-        raise "input macro called without arguments" if arg_array.empty? # TODO: check why this is not hit
+      def self.input(name, cast_type = nil, **options)
+        name = name.to_sym
+        options.symbolize_keys!
+        default = options.delete(:default) || nil
 
-        arg_array.each do |k,v|
-          k = k.to_sym
-          if v.is_a? Hash
-            v.symbolize_keys!
-            cast_type = v.delete(:cast_type)
-            default = v.delete(:default) || nil
-          end
-          attribute k, cast_type, default: default
-          self.form_fields_for_input = form_fields_for_input.merge(k => v || {})
-        end
+        attribute name, cast_type, default: default
+        self.form_fields_for_input = form_fields_for_input.merge(name => options || {})
       end
 
       class_eval(ruby_script)
