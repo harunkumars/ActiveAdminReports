@@ -101,8 +101,8 @@ ActiveAdmin.register <%= name %> do
     end
 
     def set_input_for_report_execution
-      @input = params.permit![@klass.name.underscore].slice(*@object.form_fields_for_input.keys)
-      @object.assign_attributes(@input)
+      @input = params.permit![@klass.name.underscore]&.slice(*@object.form_fields_for_input.keys)
+      @object.assign_attributes(@input) if @input.present?
     end
 
     def render_form
