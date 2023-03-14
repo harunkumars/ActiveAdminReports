@@ -1,5 +1,5 @@
 ActiveAdmin.register <%= report_run.name %> do
-  belongs_to <%= ":#{report}" %>, optional: true
+  belongs_to <%= ":#{report.singular}" %>, optional: true
   actions :index, :show, :destroy
 
   includes %i[<%= admin_user.singular %> <%= report.singular %>]
