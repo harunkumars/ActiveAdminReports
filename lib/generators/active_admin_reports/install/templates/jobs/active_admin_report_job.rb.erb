@@ -12,11 +12,11 @@ class <%= report.name %>Job < ApplicationJob
     job.arguments.push(report_run.id)
   end
 
-  def self.perform_live(*args, &block)
-    new.perform(*args, mode: :live, &block)
+  def self.perform_live(*args, **kwargs, &block)
+    new.perform(*args, **kwargs.merge(mode: :live), &block)
   end
 
-  def perform(id, current_admin_user_id, report_run_id = nil, mode: :async) # a block may be passed which is yielded with arguments from any #puts call
+  def perform(id, current_admin_user_id, report_run_id = nil, input: nil, mode: :async) # a block may be passed which is yielded with arguments from any #puts call
     @resource = <%= report.name %>.find(id)
     @current_admin_user = <%= admin_user.name %>.find(current_admin_user_id)
     if report_run_id
@@ -46,14 +46,12 @@ class <%= report.name %>Job < ApplicationJob
       end
     end
 
-    klass = Class.new do
-      extend mod
-      include mod
-    end
+    klass = resource.define_singleton_class_for_script
+    klass.extend(mod)
 
+    klass_instance = klass.new(input)
+    klass_instance.extend(mod)
     # ActiveRecord::Base.connected_to(role: :reading) do
-    klass.class_eval(resource.ruby_script, __FILE__, __LINE__)
-    klass_instance = klass.new
     raise SyntaxError, 'The provided script should implement a #perform method' unless klass_instance.respond_to?(:perform)
     raise SyntaxError, 'The provided script should implement a #output method' unless klass_instance.respond_to?(:output)
 
