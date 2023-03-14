@@ -23,19 +23,39 @@ ActiveAdmin.register <%= name %> do
     end
   end
 
-  member_action :execute_later do
-    job = <%= report.name %>Job.perform_later(resource.id, <%= admin_user_method %>.id)
-    redirect_to resource_path, notice: "Submitted #{job.job_id}"
+  member_action :execute_later, method: %i[get post] do
+    if request.post?
+      # if invalid.. we are good as long as there were no errors on the form fields
+      if @object.valid? || (@object.errors.attribute_names & @object.form_fields_for_input.keys).empty?
+        job = <%= report.name %>Job.perform_later(resource.id, <%= admin_user_method %>.id)
+        redirect_to resource_path, notice: "Submitted #{job.job_id}"
+      else
+        render_form #form with errors
+      end
+    else
+      render_form #new form
+    end
   end
 
-  member_action :execute_now do
-    response.headers['Content-Type'] = 'text/event-stream'
-    response.headers['Last-Modified'] = Time.now.httpdate
-    <%= report.name %>Job.perform_live(resource.id, <%= admin_user_method %>.id) do |arg|
-      response.stream.write "#{arg}\n"
+  member_action :execute_now, method: %i[get post] do
+    if request.post?
+      # if invalid.. we are good as long as there were no errors on the form fields
+      if @object.valid? || (@object.errors.attribute_names & @object.form_fields_for_input.keys).empty?
+        begin
+          response.headers['Content-Type'] = 'text/event-stream'
+          response.headers['Last-Modified'] = Time.now.httpdate
+          <%= report.name %>Job.perform_live(resource.id, <%= admin_user_method %>.id, input: @input) do |arg|
+            response.stream.write "#{arg}\n"
+          end
+        ensure
+          response.stream.close
+        end
+      else
+        render_form #form with errors
+      end
+    else
+     render_form #new form
     end
-  ensure
-    response.stream.close
   end
 
   index do
@@ -66,5 +86,41 @@ ActiveAdmin.register <%= name %> do
 
   controller do
     include ActionController::Live
+
+    before_action :set_resource_for_report_execution, only: %i[execute_now execute_later]
+    before_action :set_input_for_report_execution, only: %i[execute_now execute_later], if: ->{ request.post? }
+
+    private
+
+    def set_resource_for_report_execution
+      @resource = ActiveAdminReport.find(params[:id])
+      @klass = @resource.define_singleton_class_for_script
+      @object = @klass.new
+    end
+
+    def set_input_for_report_execution
+      @input = params.permit![@klass.name.underscore].slice(*@object.form_fields_for_input.keys)
+      @object.assign_attributes(@input)
+    end
+
+    def render_form
+      render type: :arb, layout: 'active_admin', locals: { object: @object, form_input: @object.form_fields_for_input}, inline: <<-TEMPLATE
+active_admin_form_for object,
+url: execute_now_admin_active_admin_report_path(resource),
+method: :post do |f|
+if form_input.present?
+  f.semantic_errors
+  f.inputs do
+    form_input.each do |k,v|
+      f.input k, v
+    end
+  end
+else
+ para b '\u2192 Hit Create Report to generate report or Cancel to Abort'
+end
+f.actions
+end
+      TEMPLATE
+
   end
 end
