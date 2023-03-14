@@ -28,7 +28,7 @@ ActiveAdmin.register <%= name %> do
     if request.post?
       # if invalid.. we are good as long as there were no errors on the form fields
       if @object.valid? || (@object.errors.attribute_names & @object.form_fields_for_input.keys).empty?
-        job = <%= report.name %>Job.perform_later(resource.id, <%= admin_user_method %>.id)
+        job = <%= report.name %>Job.perform_later(resource.id, <%= admin_user_method %>.id, input: @input)
         redirect_to resource_path, notice: "Submitted #{job.job_id}"
       else
         render_form #form with errors

@@ -9,7 +9,7 @@ class <%= report.name %>Job < ApplicationJob
       run_status: :pending,
       job_reference: [:async, job.job_id].join('-')
     )
-    job.arguments.push(report_run.id)
+    job.arguments = job.arguments.insert(2, report_run.id) #use insert since report_run_id is a positional argument
   end
 
   def self.perform_live(*args, **kwargs, &block)
