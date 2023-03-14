@@ -1,11 +1,11 @@
-class <%= name %>Job < ApplicationJob
+class <%= report.name %>Job < ApplicationJob
   attr_reader :resource, :current_admin_user, :report_run
 
   before_enqueue do |job|
     report_id, admin_user_id = arguments
-    report_run = <%= report_runs.classify %>.create!(
-      <%= report %>_id: report_id,
-      <%= admin_user %>_id: admin_user_id,
+    report_run = <%= report_run.name %>.create!(
+      <%= report.singular %>_id: report_id,
+      <%= admin_user.singular %>_id: admin_user_id,
       run_status: :pending,
       job_reference: [:async, job.job_id].join('-')
     )
@@ -17,13 +17,13 @@ class <%= name %>Job < ApplicationJob
   end
 
   def perform(id, current_admin_user_id, report_run_id = nil, mode: :async) # a block may be passed which is yielded with arguments from any #puts call
-    @resource = <%= name %>.find(id)
-    @current_admin_user = <%= admin_user.classify %>.find(current_admin_user_id)
+    @resource = <%= report.name %>.find(id)
+    @current_admin_user = <%= admin_user.name %>.find(current_admin_user_id)
     if report_run_id
-      @report_run = resource.<%= report_runs %>.find(report_run_id)
+      @report_run = resource.<%= report_run.plural %>.find(report_run_id)
     else
-      @report_run = resource.<%= report_runs %>.build(
-        <%= admin_user %>: current_admin_user,
+      @report_run = resource.<%= report_run.plural %>.build(
+        <%= admin_user.singular %>: current_admin_user,
         job_reference: [mode, job_id].join('-')
       )
     end

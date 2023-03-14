@@ -1,14 +1,14 @@
-ActiveAdmin.register <%= report_runs.classify %> do
+ActiveAdmin.register <%= report_run.name %> do
   belongs_to <%= ":#{report}" %>, optional: true
   actions :index, :show, :destroy
 
-  includes %i[<%= admin_user %> <%= report %>]
+  includes %i[<%= admin_user.singular %> <%= report.singular %>]
 
   index do
     selectable_column
     id_column
-    column <%= ":#{report}" %>
-    column <%= ":#{admin_user}" %>
+    column <%= ":#{report.singular}" %>
+    column <%= ":#{admin_user.singular}" %>
     column :job_reference
     column(:run_status) do |run|
       status_tag run.run_status_completed?, label: run.run_status
@@ -38,7 +38,7 @@ ActiveAdmin.register <%= report_runs.classify %> do
 
   sidebar('Info', only: :show) do
     attributes_table do
-      rows <%= ":#{report}" %>, <%= ":#{admin_user}" %>, :ran_at, :created_at, :updated_at
+      rows <%= ":#{report.singular}" %>, <%= ":#{admin_user.singular}" %>, :ran_at, :created_at, :updated_at
     end
   end
 
