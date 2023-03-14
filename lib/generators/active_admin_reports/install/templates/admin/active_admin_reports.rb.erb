@@ -24,6 +24,7 @@ ActiveAdmin.register <%= name %> do
   end
 
   member_action :execute_later, method: %i[get post] do
+    @form_url = execute_later_admin_<%= report.singular %>_path(@resource)
     if request.post?
       # if invalid.. we are good as long as there were no errors on the form fields
       if @object.valid? || (@object.errors.attribute_names & @object.form_fields_for_input.keys).empty?
@@ -38,6 +39,7 @@ ActiveAdmin.register <%= name %> do
   end
 
   member_action :execute_now, method: %i[get post] do
+    @form_url = execute_now_admin_<%= report.singular %>_path(@resource)
     if request.post?
       # if invalid.. we are good as long as there were no errors on the form fields
       if @object.valid? || (@object.errors.attribute_names & @object.form_fields_for_input.keys).empty?
@@ -93,7 +95,7 @@ ActiveAdmin.register <%= name %> do
     private
 
     def set_resource_for_report_execution
-      @resource = ActiveAdminReport.find(params[:id])
+      @resource = <%= report.name %>.find(params[:id])
       @klass = @resource.define_singleton_class_for_script
       @object = @klass.new
     end
@@ -104,9 +106,16 @@ ActiveAdmin.register <%= name %> do
     end
 
     def render_form
-      render type: :arb, layout: 'active_admin', locals: { object: @object, form_input: @object.form_fields_for_input}, inline: <<-TEMPLATE
+      render type: :arb,
+             layout: 'active_admin',
+             locals: {
+               object: @object,
+               form_url: @form_url,
+               form_input: @object.form_fields_for_input
+             },
+             inline: <<-TEMPLATE
 active_admin_form_for object,
-url: execute_now_admin_active_admin_report_path(resource),
+url: form_url,
 method: :post do |f|
 if form_input.present?
   f.semantic_errors
