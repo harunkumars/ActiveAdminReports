@@ -1,13 +1,29 @@
 ActiveAdmin.register <%= report_run.name %> do
-  belongs_to <%= ":#{report.singular}" %>, optional: true
+  menu false
+  belongs_to <%= ":#{report.singular}" %>
   actions :index, :show, :destroy
 
   includes %i[<%= admin_user.singular %> <%= report.singular %>]
 
-  index do
+  parent_info_line_1 = Proc.new do
+    column :name do |report|
+      div do
+        link_to report.name, show_code_admin_<%= report.singular %>_path(report)
+      end
+    end
+    column :description
+    column :created_at
+    column :updated_at
+  end
+
+  index(as: :table_with_info, content_blocks: { parent_content: parent_info_line_1 }) do
     selectable_column
     id_column
-    column <%= ":#{report.singular}" %>
+    column <%= ":#{report.singular}" %> do |run|
+      div do
+        link_to run.<%= report.singular %>.name, show_code_admin_<%= report.singular %>_path(run.<%= report.singular %>)
+      end
+    end
     column <%= ":#{admin_user.singular}" %>
     column :job_reference
     column(:run_status) do |run|
@@ -34,6 +50,16 @@ ActiveAdmin.register <%= report_run.name %> do
         end
       end if resource.reports.present?
     end
+  end
+
+  action_item :show_code, only: :index do
+    link_to 'Show Code', show_code_admin_<%= report.singular %>_path(params[<%= ":#{report.singular}_id" %>]) if params[<%= ":#{report.singular}_id" %>]
+  end
+  action_item :execute, only: :index do
+    dropdown_menu 'Execute Options' do
+      item 'Execute Now', execute_now_admin_<%= report.singular %>_path(params[<%= ":#{report.singular}_id" %>])
+      item 'Execute Later', execute_later_admin_<%= report.singular %>_path(params[<%= ":#{report.singular}_id" %>])
+    end if params[<%= ":#{report.singular}_id" %>]
   end
 
   sidebar('Info', only: :show) do

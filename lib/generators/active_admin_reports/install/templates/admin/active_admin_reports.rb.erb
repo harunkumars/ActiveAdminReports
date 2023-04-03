@@ -16,11 +16,15 @@ ActiveAdmin.register <%= name %> do
     end
   end
 
-  action_item :execute, only: :show do
+  action_item :execute, only: :show_code do
     dropdown_menu 'Execute Options' do
       item 'Execute Now', execute_now_admin_<%= report.singular %>_path(resource)
       item 'Execute Later', execute_later_admin_<%= report.singular %>_path(resource)
     end
+  end
+
+  action_item :edit, only: :show_code do
+    link_to 'Edit Code', edit_admin_<%= report.singular %>_path(resource)
   end
 
   member_action :execute_later, method: %i[get post] do
@@ -66,10 +70,15 @@ ActiveAdmin.register <%= name %> do
     column :description
     column :created_at
     column :updated_at
-    actions
+    actions(default: true) do |resource|
+      item 'Code', show_code_admin_<%= report.singular %>_path(resource)
+    end
   end
 
-  show do
+  member_action :show_code, method: :get do
+    render type: :arb,
+           layout: 'active_admin',
+           inline: <<-TEMPLATE
     pre do
       code(class: 'language-ruby') do
         resource.ruby_script
@@ -79,8 +88,9 @@ ActiveAdmin.register <%= name %> do
          href: '//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css'
     script src: '//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js'
     script render partial: 'admin/<%= report.plural %>/highlight_code', formats: [:js]
+    TEMPLATE
   end
-  sidebar('Info', only: :show) do
+  sidebar('Info', only: :show_code) do
     attributes_table do
       rows :name, :description, :created_at, :updated_at
     end
@@ -91,6 +101,14 @@ ActiveAdmin.register <%= name %> do
 
     before_action :set_resource_for_report_execution, only: %i[execute_now execute_later]
     before_action :set_input_for_report_execution, only: %i[execute_now execute_later], if: ->{ request.post? }
+
+    def show
+      if resource.<%= report_run.plural %>.present?
+        redirect_to admin_<%= report.singular %>_<%= report_run.plural %>_path(resource)
+      else
+        redirect_to show_code_admin_<%= report.singular %>_path(resource)
+      end
+    end
 
     private
 
