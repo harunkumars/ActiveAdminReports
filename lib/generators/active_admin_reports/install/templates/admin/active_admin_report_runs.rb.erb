@@ -25,6 +25,13 @@ ActiveAdmin.register <%= report_run.name %> do
       end
     end
     column <%= ":#{admin_user.singular}" %>
+    column :reports do |run|
+      div do
+        run.reports.map do |r|
+          li a(href: r.url){ r.filename }
+        end
+      end if run.reports.present?
+    end
     column :job_reference
     column(:run_status) do |run|
       status_tag run.run_status_completed?, label: run.run_status
