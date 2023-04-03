@@ -1,10 +1,24 @@
 ActiveAdmin.register <%= report_run.name %> do
+  menu false
   belongs_to <%= ":#{report.singular}" %>, optional: true
   actions :index, :show, :destroy
 
   includes %i[<%= admin_user.singular %> <%= report.singular %>]
 
-  index do
+  parent_info_line_1 = Proc.new do
+    column :name do |report|
+      div do
+        span report.name
+        br
+        span link_to 'Show Code', show_code_admin_active_admin_report_path(report)
+      end
+    end
+    column :description
+    column :created_at
+    column :updated_at
+  end
+
+  index(as: :table_with_info, content_blocks: { parent_content: parent_info_line_1 }) do
     selectable_column
     id_column
     column <%= ":#{report.singular}" %>
