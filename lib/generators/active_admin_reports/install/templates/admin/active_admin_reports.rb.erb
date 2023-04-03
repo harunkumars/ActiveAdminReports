@@ -23,6 +23,10 @@ ActiveAdmin.register <%= name %> do
     end
   end
 
+  action_item :edit, only: :show_code do
+    link_to 'Edit Code', edit_admin_<%= report.singular %>_path(resource)
+  end
+
   member_action :execute_later, method: %i[get post] do
     @form_url = execute_later_admin_<%= report.singular %>_path(@resource)
     if request.post?
@@ -66,8 +70,8 @@ ActiveAdmin.register <%= name %> do
     column :description
     column :created_at
     column :updated_at
-    actions(default: true) do
-      item 'Script', show_code_admin_<%= report.singular %>_path(resource)
+    actions(default: true) do |resource|
+      item 'Code', show_code_admin_<%= report.singular %>_path(resource)
     end
   end
 
