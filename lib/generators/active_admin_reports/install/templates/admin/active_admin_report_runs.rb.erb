@@ -1,6 +1,6 @@
 ActiveAdmin.register <%= report_run.name %> do
   menu false
-  belongs_to <%= ":#{report.singular}" %>, optional: true
+  belongs_to <%= ":#{report.singular}" %>
   actions :index, :show, :destroy
 
   includes %i[<%= admin_user.singular %> <%= report.singular %>]
@@ -53,13 +53,13 @@ ActiveAdmin.register <%= report_run.name %> do
   end
 
   action_item :show_code, only: :index do
-    link_to 'Show Code', show_code_admin_<%= report.singular %>_path(params[<%= ":#{report.singular}_id" %>])
+    link_to 'Show Code', show_code_admin_<%= report.singular %>_path(params[<%= ":#{report.singular}_id" %>]) if params[<%= ":#{report.singular}_id" %>]
   end
   action_item :execute, only: :index do
     dropdown_menu 'Execute Options' do
       item 'Execute Now', execute_now_admin_<%= report.singular %>_path(params[<%= ":#{report.singular}_id" %>])
       item 'Execute Later', execute_later_admin_<%= report.singular %>_path(params[<%= ":#{report.singular}_id" %>])
-    end
+    end if params[<%= ":#{report.singular}_id" %>]
   end
 
   sidebar('Info', only: :show) do
