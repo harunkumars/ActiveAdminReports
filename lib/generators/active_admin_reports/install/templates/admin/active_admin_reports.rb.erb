@@ -66,10 +66,15 @@ ActiveAdmin.register <%= name %> do
     column :description
     column :created_at
     column :updated_at
-    actions
+    actions(default: true) do
+      item 'Script', show_code_admin_<%= report.singular %>_path(resource)
+    end
   end
 
-  show do
+  member_action :show_code, method: :get do
+    render type: :arb,
+           layout: 'active_admin',
+           inline: <<-TEMPLATE
     pre do
       code(class: 'language-ruby') do
         resource.ruby_script
@@ -79,11 +84,7 @@ ActiveAdmin.register <%= name %> do
          href: '//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css'
     script src: '//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js'
     script render partial: 'admin/<%= report.plural %>/highlight_code', formats: [:js]
-  end
-  sidebar('Info', only: :show) do
-    attributes_table do
-      rows :name, :description, :created_at, :updated_at
-    end
+    TEMPLATE
   end
 
   controller do
@@ -91,6 +92,10 @@ ActiveAdmin.register <%= name %> do
 
     before_action :set_resource_for_report_execution, only: %i[execute_now execute_later]
     before_action :set_input_for_report_execution, only: %i[execute_now execute_later], if: ->{ request.post? }
+
+    def show
+      redirect_to admin_active_admin_report_active_admin_report_runs_path(resource)
+    end
 
     private
 

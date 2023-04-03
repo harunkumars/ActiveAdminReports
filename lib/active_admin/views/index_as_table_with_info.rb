@@ -5,9 +5,7 @@ module ActiveAdmin
     class IndexAsTableWithInfo < IndexAsTable
       def build(page_presenter, collection)
         @page_presenter = page_presenter
-
         parent_attributes_table
-
         super
       end
 
