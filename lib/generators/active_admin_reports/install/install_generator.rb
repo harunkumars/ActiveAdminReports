@@ -6,7 +6,7 @@ module ActiveAdminReports
     class InstallGenerator < ActiveRecord::Generators::Base
       desc "Installs Active Admin Reports and generates the necessary migrations"
       argument :name, type: :string, default: "ActiveAdminReport"
-      argument :run_name, type: :string, default: "Run"
+      argument :run_name, type: :string, default: "ActiveAdminReportRun"
 
       no_commands do
         attr_accessor :report, :report_run, :admin_user, :admin_user_method
@@ -19,9 +19,7 @@ module ActiveAdminReports
         admin_user_name = admin_user_method.to_s.split('_')[1..]&.join('_').classify
         self.admin_user = ActiveModel::Name.new(nil, nil, admin_user_name)
         self.report = ActiveModel::Name.new(nil, nil, name.classify)
-
-        report_run_name = [report.name, run_name.classify].join
-        self.report_run = ActiveModel::Name.new(nil, nil, report_run_name)
+        self.report_run = ActiveModel::Name.new(nil, nil, run_name.classify)
         migration_template "migrations/create_active_admin_reports.rb.erb", "db/migrate/create_#{report.plural}.rb"
         migration_template "migrations/create_active_admin_report_runs.rb.erb", "db/migrate/create_#{report_run.plural}.rb"
       end
